@@ -1,4 +1,4 @@
 *.iml
-Statistics/target
-CSV/target
+**/target
+**/dependency-reduced-pom.xml
 /.idea
