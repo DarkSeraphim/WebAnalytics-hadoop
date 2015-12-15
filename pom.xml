@@ -10,6 +10,9 @@
     <modules>
         <module>CSV</module>
         <module>Statistics</module>
+        <module>Sentiment</module>
+        <module>Feels</module>
+        <module>Cluster</module>
     </modules>
     <packaging>pom</packaging>
 

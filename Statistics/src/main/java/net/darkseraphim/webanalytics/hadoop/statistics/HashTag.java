@@ -1,6 +1,7 @@
 package net.darkseraphim.webanalytics.hadoop.statistics;
 
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableComparable;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -10,7 +11,17 @@ import java.util.*;
 /**
  * @author DarkSeraphim.
  */
-public class HashTag implements Writable {
+public class HashTag implements Writable, WritableComparable<HashTag> {
+
+    private static class Statistic implements Writable {
+        public void write(DataOutput dataOutput) throws IOException {
+
+        }
+
+        public void readFields(DataInput dataInput) throws IOException {
+
+        }
+    }
 
     private static class Day {
         private static final ThreadLocal<Calendar> calendar = new ThreadLocal<Calendar>() {
@@ -56,13 +67,25 @@ public class HashTag implements Writable {
 
     private Map<Day, Integer> countPerDay;
 
-    public HashTag() {
+    private int rank = -1;
+
+    private String tag;
+
+    private Statistic statistic;
+
+    public HashTag(String tag) {
+        this.tag = tag;
         this.countPerDay = new HashMap<Day, Integer>();
     }
 
-    public HashTag(Date day) {
+    public HashTag(String tag, Date day) {
+        this.tag = tag;
         this.countPerDay = new HashMap<Day, Integer>();
         this.countPerDay.put(new Day(day), 1);
+    }
+
+    String getTag() {
+        return this.tag;
     }
 
     void setDate(Date date) {
@@ -74,7 +97,21 @@ public class HashTag implements Writable {
         this.countPerDay.putAll(tag.countPerDay);
     }
 
+    void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    int getRank() {
+        return this.rank;
+    }
+
     public void write(DataOutput dataOutput) throws IOException {
+        dataOutput.writeUTF(this.tag);
+        dataOutput.writeInt(this.rank);
+        dataOutput.writeBoolean(this.statistic != null);
+        if (this.statistic != null) {
+            this.statistic.write(dataOutput);
+        }
         Set<Map.Entry<Day, Integer>> entries = this.countPerDay.entrySet();
         dataOutput.writeInt(entries.size());
         for (Map.Entry<Day, Integer> entry : entries) {
@@ -86,11 +123,24 @@ public class HashTag implements Writable {
     }
 
     public void readFields(DataInput dataInput) throws IOException {
+        this.tag = dataInput.readUTF();
+        this.rank = dataInput.readInt();
+        if (dataInput.readBoolean()) {
+            this.statistic = new Statistic();
+            this.statistic.readFields(dataInput);
+        }
         int counts = dataInput.readInt();
         for (int i = 0; i < counts; i++) {
             int year = dataInput.readInt();
             int day = dataInput.readInt();
             this.countPerDay.put(new Day(year, day), dataInput.readInt());
         }
+    }
+
+    public int compareTo(HashTag o) {
+        if (o.getRank() != this.getRank()) {
+            return o.getRank() > this.getRank() ? -1 : o.getRank() < this.getRank() ? 1 : 0;
+        }
+        return this.tag.compareTo(o.getTag());
     }
 }

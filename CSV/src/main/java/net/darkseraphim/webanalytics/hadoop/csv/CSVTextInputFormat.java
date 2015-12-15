@@ -15,8 +15,13 @@
  */
 package net.darkseraphim.webanalytics.hadoop.csv;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
+import org.apache.hadoop.io.compress.SplittableCompressionCodec;
 import org.apache.hadoop.mapred.*;
 
 import java.io.IOException;
@@ -32,8 +37,19 @@ import java.util.List;
  * @author mvallebr
  *
  */
-public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>>
-{
+public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>> implements JobConfigurable{
+
+
+    private CompressionCodecFactory compressionCodecs;
+
+    public void configure(JobConf conf) {
+        this.compressionCodecs = new CompressionCodecFactory(conf);
+    }
+
+    protected boolean isSplitable(FileSystem fs, Path file) {
+        CompressionCodec codec = this.compressionCodecs.getCodec(file);
+        return null != codec && codec instanceof SplittableCompressionCodec;
+    }
 
     /* (non-Javadoc)
      * @see org.apache.hadoop.mapreduce.InputFormat#createRecordReader(org.apache.hadoop.mapreduce.InputSplit, org.apache.hadoop.mapreduce.TaskAttemptContext)
