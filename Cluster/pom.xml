@@ -21,7 +21,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -39,6 +38,8 @@
                                     <mainClass>net.darkseraphim.webanalytics.hadoop.cluster.Main</mainClass>
                                 </transformer>
                             </transformers>
+                            <finalName>${project.artifactId}</finalName>
+                            <outputDirectory>${project.parent.build.directory}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
