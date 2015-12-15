@@ -39,20 +39,10 @@ public class Main {
                     if (token.startsWith(":)") || token.equals("happy")){
                         //basic requirement @ execution 2
                     } else if (token.startsWith(":(") || token.equals("sad")){
-                        //basic requirement @ execution 2
-                        
-                        
-                    }
-                        
-                    
-                    
-                    
-                }
-              
-                
-                
-            }
-            
+                        //basic requirement @ execution 2                                               
+                    }                                                                           
+                }                                                            
+            }            
         }
     }
 
