@@ -10,24 +10,27 @@ import org.apache.hadoop.mapred.lib.MultipleOutputs;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
 /**
- * Sentiment analysis skeleton TODO: replace TheOutputClass with desired output
+ * Sentiment analysis skeleton TODO: replace EmotionTweet with desired output
  * class
  */
 public class Main {
 
     private static final String SECOND_OUTPUT = "top10";
+    static EmotionTweet emotionTweet;
+    static ArrayList<EmotionTweet> timeLine = new ArrayList<EmotionTweet>();
 
-    public static class Map extends MapReduceBase implements Mapper<LongWritable, Row, Text, TheOutputClass> {
+    public static class Map extends MapReduceBase implements Mapper<LongWritable, Row, Text, EmotionTweet> {
 
         private static final SimpleDateFormat sdf = new SimpleDateFormat("");
         private Text tag = new Text();
 
-        public void map(LongWritable key, Row value, OutputCollector<Text, TheOutputClass> output, Reporter reporter) throws IOException {
-            // TODO: convert Rows into TheOutputClass instances, call output.collect(key, value) to produce results
+        public void map(LongWritable key, Row value, OutputCollector<Text, EmotionTweet> output, Reporter reporter) throws IOException {
+            // TODO: convert Rows into EmotionTweet instances, call output.collect(key, value) to produce results
             String line = ""; // tweet context
             String dateTimeline = ""; //constructing a timeline           
             String dateDay = ("" + value.get(5).toString());
@@ -39,20 +42,25 @@ public class Main {
                     String token = stringTokenizer.nextToken();
                     if (token.startsWith(":)") || token.equals("happy")) {
                         //basic requirement @ execution 2
-
+                        emotionTweet = new EmotionTweet(1,line,dateTimeline);
+                        timeLine.add(emotionTweet);
                         //TODO: output var dateTimeline
                     } else if (token.startsWith(":(") || token.equals("sad")) {
                         //basic requirement @ execution 2   
-                        
+                        emotionTweet = new EmotionTweet(0,line,dateTimeline);
+                        timeLine.add(emotionTweet);                        
+
                         //TODO: output var dateTimeline
                     }
                 }
             }
         }
     }
+    
+    //TODO: ForEach loop over the arraylist Timeline
 
     // TODO: if we don't need to produce multiple outputs, clean up the Reducer
-    public static class Reduce extends MapReduceBase implements Reducer<Text, TheOutputClass, Text, TheOutputClass> {
+    public static class Reduce extends MapReduceBase implements Reducer<Text, EmotionTweet, Text, EmotionTweet> {
 
         private int ordinal = 0;
 
@@ -63,8 +71,8 @@ public class Main {
             this.out = new MultipleOutputs(job);
         }
 
-        public void reduce(Text key, Iterator<TheOutputClass> values, OutputCollector<Text, TheOutputClass> output, Reporter reporter) throws IOException {
-            // TODO: reduce all values in the Iterator to one single TheOutputClass instance
+        public void reduce(Text key, Iterator<EmotionTweet> values, OutputCollector<Text, EmotionTweet> output, Reporter reporter) throws IOException {
+            // TODO: reduce all values in the Iterator to one single EmotionTweet instance
         }
 
         @SuppressWarnings("unchecked")
@@ -72,7 +80,7 @@ public class Main {
             return ((OutputCollector<K, V>) this.out.getCollector(SECOND_OUTPUT, reporter));
         }
 
-        private void analyse(TheOutputClass tag, OutputCollector<TheOutputClass, Object> output) {
+        private void analyse(EmotionTweet tag, OutputCollector<EmotionTweet, Object> output) {
             // TODO: produce second output (if required)
         }
     }
@@ -82,7 +90,7 @@ public class Main {
         conf.setJobName("feels-analysis");
 
         conf.setOutputKeyClass(Text.class);
-        conf.setOutputValueClass(TheOutputClass.class);
+        conf.setOutputValueClass(EmotionTweet.class);
         conf.setMapperClass(Map.class);
         conf.setCombinerClass(Reduce.class);
         conf.setReducerClass(Reduce.class);
@@ -91,7 +99,7 @@ public class Main {
         conf.setInputFormat(CSVTextInputFormat.class);
         conf.setOutputFormat(TextOutputFormat.class);
         // TODO: determine whether we need extra output
-        MultipleOutputs.addMultiNamedOutput(conf, SECOND_OUTPUT, TextOutputFormat.class, Text.class, TheOutputClass.class);
+        MultipleOutputs.addMultiNamedOutput(conf, SECOND_OUTPUT, TextOutputFormat.class, Text.class, EmotionTweet.class);
         FileInputFormat.setInputPaths(conf, new Path(args[0]));
         FileOutputFormat.setOutputPath(conf, new Path(args[1]));
 
