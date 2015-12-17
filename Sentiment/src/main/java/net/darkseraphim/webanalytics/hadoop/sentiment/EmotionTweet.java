@@ -17,13 +17,27 @@ public class EmotionTweet implements Writable {
      *  to the DataOutput, and read from the DataInput (in the same order, when we call read & write, the state
      *  of the object should not change!)
      */
-    public EmotionTweet(int value, String tweet, String time) {
-        int type = value;
-        String text = tweet;
-        String date = time;
+    public int type = -1;
+    public String tweet = "";
+    public String date = "";
+    
+    public EmotionTweet(int value_O, String tweet_O, String time_O) {
+         type = value_O;
+        tweet = tweet_O;
+         date = time_O;
+    }
+    
+    int getType() {
         
-        
-        
+        return type;
+    }
+    
+    String getTweet() {
+        return tweet;
+    }
+    
+    String getDate() {
+        return date;
     }
     
     public void write(DataOutput dataOutput) throws IOException {

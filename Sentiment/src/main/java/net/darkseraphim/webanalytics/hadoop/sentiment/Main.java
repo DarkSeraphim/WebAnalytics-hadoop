@@ -54,6 +54,22 @@ public class Main {
                     }
                 }
             }
+
+            Iterable<EmotionTweet> emotionTweet = null;
+            //output   bijvoorbeeld         
+            for (EmotionTweet emotionTW : emotionTweet) {
+                int counter = 0;
+                String currentEmotion = emotionTW.getTweet();
+
+                for (EmotionTweet emotionNextTW : emotionTweet) {
+
+                    if (emotionNextTW.equals(currentEmotion)) {
+                        counter++;
+                        System.out.println("Found emotion '" + currentEmotion + "' " + counter + " times");
+
+                    }
+                }
+            }
         }
     }
 
