@@ -103,52 +103,54 @@ public class Main {
             }
 
         }
-
-        // TODO: if we don't need to produce multiple outputs, clean up the Reducer            // TODO: if we don't need to produce multiple outputs, clean up the Reducer
-        public static class Reduce extends MapReduceBase implements Reducer<Text, FeelingTweet, Text, FeelingTweet> {
-
-            private int ordinal = 0;
-
-            private MultipleOutputs out;
-
-            @Override
-            public void configure(JobConf job) {
-                this.out = new MultipleOutputs(job);
-            }
-
-            public void reduce(Text key, Iterator<FeelingTweet> values, OutputCollector<Text, FeelingTweet> output, Reporter reporter) throws IOException {
-                // TODO: reduce all values in the Iterator to one single FeelingTweet instance
-            }
-
-            @SuppressWarnings("unchecked")
-            private <K, V> OutputCollector<K, V> getOutputCollector(Reporter reporter) throws IOException {
-                return ((OutputCollector<K, V>) this.out.getCollector(SECOND_OUTPUT, reporter));
-            }
-
-            private void analyse(FeelingTweet tag, OutputCollector<FeelingTweet, Object> output) {
-                // TODO: produce second output (if required)
-            }
-        }
-
-        public static void main(String[] args) throws Exception {
-            JobConf conf = new JobConf(Main.class);
-            conf.setJobName("feels-analysis");
-
-            conf.setOutputKeyClass(Text.class);
-            conf.setOutputValueClass(FeelingTweet.class);
-            conf.setMapperClass(Map.class);
-            conf.setCombinerClass(Reduce.class);
-            conf.setReducerClass(Reduce.class);
-
-            conf.setNumReduceTasks(1);
-            conf.setInputFormat(CSVTextInputFormat.class);
-            conf.setOutputFormat(TextOutputFormat.class);
-            // TODO: determine whether we need extra output
-            MultipleOutputs.addMultiNamedOutput(conf, SECOND_OUTPUT, TextOutputFormat.class, Text.class, FeelingTweet.class);
-            FileInputFormat.setInputPaths(conf, new Path(args[0]));
-            FileOutputFormat.setOutputPath(conf, new Path(args[1]));
-
-            JobClient.runJob(conf);
-        }
-
     }
+
+    // TODO: if we don't need to produce multiple outputs, clean up the Reducer            // TODO: if we don't need to produce multiple outputs, clean up the Reducer
+
+    public static class Reduce extends MapReduceBase implements Reducer<Text, FeelingTweet, Text, FeelingTweet> {
+
+        private int ordinal = 0;
+
+        private MultipleOutputs out;
+
+        @Override
+        public void configure(JobConf job) {
+            this.out = new MultipleOutputs(job);
+        }
+
+        public void reduce(Text key, Iterator<FeelingTweet> values, OutputCollector<Text, FeelingTweet> output, Reporter reporter) throws IOException {
+            // TODO: reduce all values in the Iterator to one single FeelingTweet instance
+        }
+
+        @SuppressWarnings("unchecked")
+        private <K, V> OutputCollector<K, V> getOutputCollector(Reporter reporter) throws IOException {
+            return ((OutputCollector<K, V>) this.out.getCollector(SECOND_OUTPUT, reporter));
+        }
+
+        private void analyse(FeelingTweet tag, OutputCollector<FeelingTweet, Object> output) {
+            // TODO: produce second output (if required)
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        JobConf conf = new JobConf(Main.class);
+        conf.setJobName("feels-analysis");
+
+        conf.setOutputKeyClass(Text.class);
+        conf.setOutputValueClass(FeelingTweet.class);
+        conf.setMapperClass(Map.class);
+        conf.setCombinerClass(Reduce.class);
+        conf.setReducerClass(Reduce.class);
+
+        conf.setNumReduceTasks(1);
+        conf.setInputFormat(CSVTextInputFormat.class);
+        conf.setOutputFormat(TextOutputFormat.class);
+        // TODO: determine whether we need extra output
+        MultipleOutputs.addMultiNamedOutput(conf, SECOND_OUTPUT, TextOutputFormat.class, Text.class, FeelingTweet.class);
+        FileInputFormat.setInputPaths(conf, new Path(args[0]));
+        FileOutputFormat.setOutputPath(conf, new Path(args[1]));
+
+        JobClient.runJob(conf);
+    }
+
+}
