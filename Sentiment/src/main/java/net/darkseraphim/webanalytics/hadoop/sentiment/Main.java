@@ -42,13 +42,13 @@ public class Main {
                     String token = stringTokenizer.nextToken();
                     if (token.startsWith(":)") || token.equals("happy")) {
                         //basic requirement @ execution 2
-                        emotionTweet = new EmotionTweet(1,line,dateTimeline);
+                        emotionTweet = new EmotionTweet(1, line, dateTimeline);
                         timeLine.add(emotionTweet);
                         //TODO: output var dateTimeline
                     } else if (token.startsWith(":(") || token.equals("sad")) {
                         //basic requirement @ execution 2   
-                        emotionTweet = new EmotionTweet(0,line,dateTimeline);
-                        timeLine.add(emotionTweet);                        
+                        emotionTweet = new EmotionTweet(0, line, dateTimeline);
+                        timeLine.add(emotionTweet);
 
                         //TODO: output var dateTimeline
                     }
@@ -56,9 +56,8 @@ public class Main {
             }
         }
     }
-    
-    //TODO: ForEach loop over the arraylist Timeline
 
+    //TODO: ForEach loop over the arraylist Timeline
     // TODO: if we don't need to produce multiple outputs, clean up the Reducer
     public static class Reduce extends MapReduceBase implements Reducer<Text, EmotionTweet, Text, EmotionTweet> {
 

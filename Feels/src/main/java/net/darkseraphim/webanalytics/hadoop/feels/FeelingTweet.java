@@ -9,7 +9,7 @@ import java.io.IOException;
 /**
  * @author DarkSeraphim.
  */
-public class TheOutputClass implements Writable {
+public class FeelingTweet implements Writable {
 
     /*
      *  The following two methods are for persistence
@@ -17,6 +17,11 @@ public class TheOutputClass implements Writable {
      *  to the DataOutput, and read from the DataInput (in the same order, when we call read & write, the state
      *  of the object should not change!)
      */
+    
+    
+    public FeelingTweet(String feeling, String tweet, String location, String date, String season) {
+        
+    }
     public void write(DataOutput dataOutput) throws IOException {
         // TODO: write fields to DataOutput
     }
