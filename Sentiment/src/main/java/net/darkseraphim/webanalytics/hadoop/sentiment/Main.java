@@ -11,6 +11,7 @@ import org.apache.hadoop.mapred.lib.MultipleOutputs;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 
 /**
  * Sentiment analysis skeleton
@@ -26,6 +27,22 @@ public class Main {
 
         public void map(LongWritable key, Row value, OutputCollector<Text, TheOutputClass> output, Reporter reporter) throws IOException {
             // TODO: convert Rows into TheOutputClass instances, call output.collect(key, value) to produce results
+            String line = ""; // tweet context
+            String dateTimeline = ""; //constructing a timeline           
+            String dateDay = (""+value.get(5).toString());
+            if (dateDay.substring(0, 9).equals("2013-12-31") || dateDay.substring(0, 9).equals("2014-01-01")  ) { //Restrict tweets by date range dec 2013 - jan 2014
+                dateTimeline = dateDay.substring(5); //Timeline                
+                line = value.get(4).toString();
+                StringTokenizer stringTokenizer = new StringTokenizer(line);
+                while (stringTokenizer.hasMoreTokens()) {
+                    String token = stringTokenizer.nextToken();
+                    if (token.startsWith(":)") || token.equals("happy")){
+                        //basic requirement @ execution 2
+                    } else if (token.startsWith(":(") || token.equals("sad")){
+                        //basic requirement @ execution 2                                               
+                    }                                                                           
+                }                                                            
+            }            
         }
     }
 
