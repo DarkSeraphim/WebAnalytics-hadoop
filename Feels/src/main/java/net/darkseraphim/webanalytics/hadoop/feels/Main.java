@@ -101,12 +101,25 @@ public class Main {
                     }
                 }
             }
+            Iterable<FeelingTweet> feelingTweets = null;
+            //output   bijvoorbeeld         
+            for (FeelingTweet feelingTW : feelingTweets) {
+                int counter = 0;
+                String currentFeeling = feelingTW.getFeeling();
 
+                for (FeelingTweet feelingNextTW : feelingTweets) {
+
+                    if (feelingNextTW.feeling.equals(currentFeeling)) {
+                        counter++;
+                        System.out.println("Found feeling '" + currentFeeling + "' " + counter + " times");
+
+                    }
+                }
+            }
         }
     }
 
     // TODO: if we don't need to produce multiple outputs, clean up the Reducer            // TODO: if we don't need to produce multiple outputs, clean up the Reducer
-
     public static class Reduce extends MapReduceBase implements Reducer<Text, FeelingTweet, Text, FeelingTweet> {
 
         private int ordinal = 0;
