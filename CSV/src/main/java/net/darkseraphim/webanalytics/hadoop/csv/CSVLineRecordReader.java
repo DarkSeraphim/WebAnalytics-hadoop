@@ -23,10 +23,7 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.mapred.FileSplit;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.TaskAttemptContext;
+import org.apache.hadoop.mapred.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -81,8 +78,8 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
      *            - hadoop conf
      * @throws IOException
      */
-    public CSVLineRecordReader(InputStream is, Configuration conf) throws IOException {
-        init(is, conf);
+    public CSVLineRecordReader(InputSplit is, JobConf conf) throws IOException {
+        configure(is, conf);
     }
 
     /**
@@ -103,12 +100,14 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
         if (isZipFile) {
             @SuppressWarnings("resource")
             ZipInputStream zis = new ZipInputStream(new BufferedInputStream(is));
-            zis.getNextEntry();
+            if (zis.getNextEntry() == null) throw new IOException("No entries");
             is = zis;
         }
         this.is = is;
         this.in = new BufferedReader(new InputStreamReader(is));
     }
+
+    int bytes = 0;
 
     /**
      * Parses a line from the CSV, from the current stream position. It stops
@@ -127,8 +126,10 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
         StringBuffer sb = new StringBuffer();
         int i;
         int quoteOffset = 0, delimiterOffset = 0;
+        int avail = is.available();
         // Reads each char from input stream unless eof was reached
         while ((i = in.read()) != -1) {
+            bytes++;
             c = (char) i;
             numRead++;
             sb.append(c);
@@ -205,18 +206,17 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
      * org.apache.hadoop.mapreduce.RecordReader#initialize(org.apache.hadoop
      * .mapreduce.InputSplit, org.apache.hadoop.mapreduce.TaskAttemptContext)
      */
-    public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException {
+    public void configure(InputSplit genericSplit, JobConf conf) throws IOException {
         FileSplit split = (FileSplit) genericSplit;
-        Configuration job = context.getConfiguration();
 
         start = split.getStart();
         end = start + split.getLength();
         final Path file = split.getPath();
-        compressionCodecs = new CompressionCodecFactory(job);
+        compressionCodecs = new CompressionCodecFactory(conf);
         final CompressionCodec codec = compressionCodecs.getCodec(file);
 
         // open the file and seek to the start of the split
-        FileSystem fs = file.getFileSystem(job);
+        FileSystem fs = file.getFileSystem(conf);
         FSDataInputStream fileIn = fs.open(split.getPath());
 
         if (codec != null) {
@@ -230,9 +230,11 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
         }
 
         this.pos = start;
-        init(is, job);
+        init(is, conf);
     }
 
+
+    int line, totalLines, totalKV;
     /*
      * (non-Javadoc)
      *
@@ -247,10 +249,14 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
         if (value == null) {
             value = new Row();
         }
+        line = 0;
+        totalKV++;
         while (true) {
-            if (pos >= end)
-                return false;
+            if (pos >= end) {
+                return false;}
             int newSize = 0;
+            line++;
+            totalLines++;
             newSize = readLine(value);
             pos += newSize;
             if (newSize == 0) {
@@ -302,8 +308,13 @@ public class CSVLineRecordReader implements RecordReader<LongWritable, List<Text
         }
     }
 
+    public long getEnd() {
+        return this.end;
+    }
+
     public boolean next(LongWritable longWritable, List<Text> texts) throws IOException {
         if (!nextKeyValue()) {
+            System.out.println("[LOG] Called next, was false");
             return false;
         }
         longWritable.set(this.getCurrentKey().get());

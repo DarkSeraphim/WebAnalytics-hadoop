@@ -21,7 +21,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.io.compress.SplittableCompressionCodec;
 import org.apache.hadoop.mapred.*;
 
 import java.io.IOException;
@@ -37,8 +36,9 @@ import java.util.List;
  * @author mvallebr
  *
  */
-public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>> implements JobConfigurable{
+public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>> implements JobConfigurable {
 
+    public static CSVLineRecordReader reader;
 
     private CompressionCodecFactory compressionCodecs;
 
@@ -46,9 +46,18 @@ public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>
         this.compressionCodecs = new CompressionCodecFactory(conf);
     }
 
-    protected boolean isSplitable(FileSystem fs, Path file) {
+    @Override
+    public InputSplit[] getSplits(JobConf job, int numSplits) throws IOException
+    {
+        InputSplit[] splits = super.getSplits(job, numSplits);
+        System.out.println("[LOG] getSplits called, " + splits.length + " splits created");
+        return splits;
+    }
+
+    public boolean isSplitable(FileSystem fs, Path file) {
         CompressionCodec codec = this.compressionCodecs.getCodec(file);
-        return null != codec && codec instanceof SplittableCompressionCodec;
+        System.out.println("[LOG] isSplitable called for " + file.getName() + ", " + false + " returned");
+        return false;
     }
 
     /* (non-Javadoc)
@@ -59,9 +68,13 @@ public class CSVTextInputFormat extends FileInputFormat<LongWritable, List<Text>
             throws IOException {
         String quote = conf.get(CSVLineRecordReader.FORMAT_DELIMITER);
         String separator = conf.get(CSVLineRecordReader.FORMAT_SEPARATOR);
-        if (null == quote || null == separator) {
-            throw new IOException("CSVTextInputFormat: missing parameter delimiter/separator");
+        conf.set(CSVLineRecordReader.FORMAT_DELIMITER, CSVLineRecordReader.DEFAULT_DELIMITER);
+        conf.set(CSVLineRecordReader.FORMAT_SEPARATOR, CSVLineRecordReader.DEFAULT_SEPARATOR);
+        conf.setBoolean(CSVLineRecordReader.IS_ZIPFILE, false);
+        System.out.println("[LOG] Created reader");
+        if (split instanceof FileSplit) {
+            return reader = new CSVLineRecordReader(split, conf);
         }
-        return new CSVLineRecordReader();
+        throw new UnsupportedOperationException("Only FileSplits are supported");
     }
 }

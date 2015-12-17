@@ -73,6 +73,10 @@ public class HashTag implements Writable, WritableComparable<HashTag> {
 
     private Statistic statistic;
 
+    private HashTag() {
+        this.countPerDay = new HashMap<Day, Integer>();
+    }
+
     public HashTag(String tag) {
         this.tag = tag;
         this.countPerDay = new HashMap<Day, Integer>();
@@ -94,7 +98,20 @@ public class HashTag implements Writable, WritableComparable<HashTag> {
     }
 
     void merge(HashTag tag) {
-        this.countPerDay.putAll(tag.countPerDay);
+        for (Map.Entry<Day, Integer> entry : tag.countPerDay.entrySet()) {
+            Integer i = this.countPerDay.get(entry.getKey());
+            this.countPerDay.put(entry.getKey(), (i != null ? i + entry.getValue() : entry.getValue()));
+        }
+    }
+
+    int getCount() {
+        int sum = 0;
+        for (Integer i : this.countPerDay.values()) {
+            if (i != null) {
+                sum += i;
+            }
+        }
+        return sum;
     }
 
     void setRank(int rank) {
@@ -138,9 +155,16 @@ public class HashTag implements Writable, WritableComparable<HashTag> {
     }
 
     public int compareTo(HashTag o) {
-        if (o.getRank() != this.getRank()) {
-            return o.getRank() > this.getRank() ? -1 : o.getRank() < this.getRank() ? 1 : 0;
+        int oc = o.getCount();
+        int c = this.getCount();
+        if (oc != c) {
+            return oc > c ? 1 : oc < c ? -1 : 0;
         }
         return this.tag.compareTo(o.getTag());
+    }
+
+    @Override
+    public String toString() {
+        return this.tag;
     }
 }
